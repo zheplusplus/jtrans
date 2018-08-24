@@ -21,65 +21,74 @@ def _no_comment(i):
         yield q(o)
 
 
-def _format_item(item):
-    cls = item.attr('class')
-    if cls == 'station':
-        _format_station(item)
-    elif cls == 'fareSection':
-        _format_fare_sec(item)
-    elif cls == 'fareSection express':
-        _format_fare_exp(item)
-    elif cls == 'fare':
-        _format_fare(item)
-    elif cls == 'access':
-        _format_access(item)
-    elif cls == 'access walk':
-        _format_walk(item)
-    else:
-        print('       X-> ', item.attr('class'), 'Please report this message')
+class RouteDisplay:
+    def __init__(self, options):
+        if not options['show_all_stops']:
+            self._format_stops = lambda _: None
+
+    def format_root(self, root):
+        for dtl in root('.routeDetail'):
+            print('=' * 80)
+            for item in _no_comment(dtl):
+                self._format_item(item)
+
+    def _format_item(self, item):
+        cls = item.attr('class')
+        if cls == 'station':
+            self._format_station(item)
+        elif cls == 'fareSection':
+            self._format_fare_sec(item)
+        elif cls == 'fareSection express':
+            self._format_fare_exp(item)
+        elif cls == 'fare':
+            self._format_fare(item)
+        elif cls == 'access':
+            self._format_access(item)
+        elif cls == 'access walk':
+            self._format_walk(item)
+        else:
+            print('       X-> ', item.attr('class'), 'Please report this message')
+
+    def _format_station(self, sta):
+        print(sta('dl dt').text())
+        print('  ', sta('.time li').text())
+
+    def _format_fare_sec(self, fare_sta):
+        for item in _no_comment(fare_sta.children()):
+            self._format_item(item)
+
+    def _format_fare_exp(self, fare_sta):
+        for item in _no_comment(fare_sta.children()):
+            if item.attr('class') == 'fare':
+                print(_parse_fare(item.text()), 'for limited express')
+                continue
+            self._format_item(item)
 
 
-def _format_station(sta):
-    print(sta('dl dt').text())
-    print('  ', sta('.time li').text())
+    def _format_fare(self, fare):
+        print(_parse_fare(fare.text()))
+
+    def _format_stops(self, acc):
+        for stop in _no_comment(acc('.stop dl')):
+            print('    ', stop('dt').text(), stop('dd').text())
+
+    def _format_access(self, acc):
+        print('  ', acc('.transport div').text())
+
+        platform_text = acc('.platform').text()
+        if platform_text:
+            print('  ', platform_text)
+
+        stop_num = acc('.btnStopNum').text()
+        if stop_num:
+            print('    ', stop_num)
+        self._format_stops(acc)
+
+    def _format_walk(w):
+        print('... Walk ...')
 
 
-def _format_fare_sec(fare_sta):
-    for item in _no_comment(fare_sta.children()):
-        _format_item(item)
-
-
-def _format_fare_exp(fare_sta):
-    for item in _no_comment(fare_sta.children()):
-        if item.attr('class') == 'fare':
-            print(_parse_fare(item.text()), 'for limited express')
-            continue
-        _format_item(item)
-
-
-def _format_fare(fare):
-    print(_parse_fare(fare.text()))
-
-
-def _format_access(acc):
-    print('  ', acc('.transport div').text())
-
-    platform_text = acc('.platform').text()
-    if platform_text:
-        print('  ', platform_text)
-
-    stop_num = acc('.btnStopNum').text()
-    if stop_num:
-        print('    ', stop_num)
-    for stop in _no_comment(acc('.stop dl')):
-        print('    ', stop('dt').text(), stop('dd').text())
-
-
-def _format_walk(w):
-    print('... Walk ...')
-
-
-def find_route(src, dst, dt):
+def find_route(src, dst, dt, options):
     head_info = '{} ==> {} at {}'.format(src, dst, dt.strftime('%Y-%m-%d %H:%M'))
     print(head_info)
     dt_str = dt.strftime('%Y%m%d%H%M')
@@ -111,10 +120,7 @@ def find_route(src, dst, dt):
             'kw': '',
         }).content, 'utf-8'))
 
-    for dtl in root('.routeDetail'):
-        print('=' * 80)
-        for item in _no_comment(dtl):
-            _format_item(item)
+    RouteDisplay(options).format_root(root)
 
     print('=' * 80)
     print(head_info)

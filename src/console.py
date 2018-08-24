@@ -27,8 +27,10 @@ def cli():
 @click.argument('dst', nargs=1, required=True)
 @click.option('--date', callback=parse_date, help='Date. Today by default')
 @click.option('--time', callback=parse_time, help='Time. Now by default')
-def route(src, dst, date, time):
-    find_route(src, dst, datetime.combine(date.date(), time.time()))
+@click.option('--show-all-stops/--no-show-all-stops', default=False,
+              help='Show all stops (show only transfer stops and destination by default)')
+def route(src, dst, date, time, **kwargs):
+    find_route(src, dst, datetime.combine(date.date(), time.time()), kwargs)
 
 
 def main():
