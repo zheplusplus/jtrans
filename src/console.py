@@ -27,6 +27,8 @@ def cli():
 @click.argument('dst', nargs=1, required=True)
 @click.option('--date', callback=parse_date, help='Date. Today by default')
 @click.option('--time', callback=parse_time, help='Time. Now by default')
+@click.option('--shinkansen/--no-shinkansen', default=True, help='Use Shinkansen or not')
+@click.option('--limited-express/--no-limited-express', default=True, help='Use limited express or not')
 @click.option('--show-all-stops/--no-show-all-stops', default=False,
               help='Show all stops (show only transfer stops and destination by default)')
 def route(src, dst, date, time, **kwargs):

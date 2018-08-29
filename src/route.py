@@ -84,11 +84,14 @@ class RouteDisplay:
             print('    ', stop_num)
         self._format_stops(acc)
 
-    def _format_walk(w):
+    def _format_walk(self, w):
         print('... Walk ...')
 
 
 def find_route(src, dst, dt, options):
+    def _opt_to_char(opt):
+        return '1' if options[opt] else '0'
+
     head_info = '{} ==> {} at {}'.format(src, dst, dt.strftime('%Y-%m-%d %H:%M'))
     print(head_info)
     dt_str = dt.strftime('%Y%m%d%H%M')
@@ -112,8 +115,8 @@ def find_route(src, dst, dt, options):
             'ws': '3',
             's': '0',
             'al': '1',
-            'shin': '1',
-            'ex': '1',
+            'shin': _opt_to_char('shinkansen'),
+            'ex': _opt_to_char('limited_express'),
             'hb': '1',
             'lb': '1',
             'sr': '1',
